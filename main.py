@@ -24,7 +24,7 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Load model
 try:
-    model = YOLO("weights.pt")
+    model = YOLO("best.pt")
     logger.info("Model loaded successfully")
 except Exception as e:
     logger.error(f"Failed to load model: {str(e)}")
