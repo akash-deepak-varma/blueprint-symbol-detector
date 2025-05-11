@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from ultralytics import YOLO
 import cv2
 import numpy as np
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Create static directory if it doesn't exist
+# Create and mount static directory
 static_dir = "static"
 os.makedirs(static_dir, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
@@ -28,6 +29,10 @@ try:
 except Exception as e:
     logger.error(f"Failed to load model: {str(e)}")
     raise Exception(f"Failed to load model: {str(e)}")
+
+@app.get("/")
+async def root():
+    return FileResponse(os.path.join(static_dir, "index.html"))
 
 @app.post("/detect")
 async def detect(file: UploadFile = File(...)):
@@ -95,7 +100,3 @@ async def detect(file: UploadFile = File(...)):
         "detections": detections,
         "image_url": f"/static/{overlay_filename}"
     }
-
-@app.get("/")
-async def root():
-    return {"message": "Welcome to the Blueprint Symbol Detection API. Use POST /detect to upload a blueprint."}
