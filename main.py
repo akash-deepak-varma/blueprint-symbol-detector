@@ -15,8 +15,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-os.makedirs("static", exist_ok=True)
+
+# Create static directory if it doesn't exist
+static_dir = "static"
+os.makedirs(static_dir, exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Load model
 try:
@@ -84,7 +87,7 @@ async def detect(file: UploadFile = File(...)):
 
     # Save overlay
     overlay_filename = f"overlay_{uuid.uuid4()}.png"
-    overlay_path = os.path.join("static", overlay_filename)
+    overlay_path = os.path.join(static_dir, overlay_filename)
     cv2.imwrite(overlay_path, overlay)
     logger.info(f"Overlay saved at {overlay_path}")
 
@@ -93,7 +96,6 @@ async def detect(file: UploadFile = File(...)):
         "image_url": f"/static/{overlay_filename}"
     }
 
-# Optional: Add a root endpoint to avoid 404
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Blueprint Symbol Detection API. Use POST /detect to upload a blueprint."}
