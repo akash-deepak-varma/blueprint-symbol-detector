@@ -1,9 +1,13 @@
 # Use official Python 3.9 slim image
 FROM python:3.9-slim
 
-# Install Poppler for pdf2image
+# Install Poppler for pdf2image and OpenGL libraries for OpenCV
 USER root
-RUN apt-get update && apt-get install -y poppler-utils && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    poppler-utils \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user for security
 RUN useradd -m -u 1000 user
