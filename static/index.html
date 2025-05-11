@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -73,6 +34,7 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            margin-right: 10px;
         }
         button:hover {
             background-color: #218838;
@@ -95,6 +57,9 @@
         }
         .error {
             color: red;
+            margin-top: 10px;
+        }
+        .download-section {
             margin-top: 10px;
         }
     </style>
@@ -151,6 +116,21 @@
                 img.src = data.image_url;
                 img.alt = 'Detected symbols overlay';
                 resultsDiv.appendChild(img);
+
+                const downloadSection = document.createElement('div');
+                downloadSection.className = 'download-section';
+                const downloadButton = document.createElement('button');
+                downloadButton.textContent = 'Download Overlay Image';
+                downloadButton.onclick = () => {
+                    const link = document.createElement('a');
+                    link.href = data.image_url;
+                    link.download = 'detected_blueprint.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                };
+                downloadSection.appendChild(downloadButton);
+                resultsDiv.appendChild(downloadSection);
             } catch (error) {
                 resultsDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
             }
